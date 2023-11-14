@@ -2,21 +2,25 @@
 
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
+import { useDebouncedCallback } from 'use-debounce';
 
 export default function Search({ placeholder }: { placeholder: string }) {
   const searchParams = useSearchParams();//Allows you to access the parameters of the current URL. For example, the search params for this URL /dashboard/invoices?page=1&query=pending would look like this: {page: '1', query: 'pending'}.
   const pathname = usePathname(); // is the current path. Lets you read the current URL's pathname. For example, the route /dashboard/invoices, usePathname would return '/dashboard/invoices'
   const { replace } = useRouter(); // Enables navigation between routes within client components programmatically. There are multiple methods you can use.
-  function handleSearch(term: string) {
+
+  const handleSearch = useDebouncedCallback((term) => {
     const params = new URLSearchParams(searchParams);
-    console.log(`Searching... ${term}`);
+    params.set('page', '1');
+    console.log(`Searching page... ${params.get('page')}`);
     if (term) {
       params.set('query', term);
+      console.log(`Searching query... ${params.get('query')}`);
     } else {
       params.delete('query');
     }
     replace(`${pathname}?${params.toString()}`);//command updates the URL with the user's search data. For example, /dashboard/invoices?query=lee 
-  }
+  }, 300);//wait 3 seconds in execute 
   return (
     <div className="relative flex flex-1 flex-shrink-0">
       <label htmlFor="search" className="sr-only">
