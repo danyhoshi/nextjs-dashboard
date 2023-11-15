@@ -29,10 +29,22 @@ export async function createInvoice(formData: FormData) {
       const amountInCents = amount * 100; //convirtiendo a centavos
       const date = new Date().toISOString().split('T')[0];
 
-    await sql`
-        INSERT INTO invoices (customer_id, amount, status, date)
-        VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
-    `;
+    // await sql`
+    //     INSERT INTO invoices (customer_id, amount, status, date)
+    //     VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
+    // `;
+
+    //Manejando el error
+    try {
+        await sql`
+          INSERT INTO invoices (customer_id, amount, status, date)
+          VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
+        `;
+      } catch (error) {
+        return {
+          message: 'Database Error: Failed to Create Invoice.',
+        };
+      }
     revalidatePath('/dashboard/invoices'); //para borrar el caché de NextJs y activar una nueva solicitud al servidor Una vez que se haya actualizado la base de datos, /dashboard/invoicesse revalidará la ruta y se obtendrán datos nuevos del servidor.
     redirect('/dashboard/invoices'); //En este punto, también se desea redirigir al usuario a la /dashboard/invoices/
 }
@@ -51,17 +63,33 @@ export async function updateInvoice(id: string, formData: FormData) {
  
   const amountInCents = amount * 100;
  
-  await sql`
-    UPDATE invoices
-    SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
-    WHERE id = ${id}
-  `;
- 
+//   await sql`
+//     UPDATE invoices
+//     SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
+//     WHERE id = ${id}
+//   `;
+try {
+    await sql`
+        UPDATE invoices
+        SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
+        WHERE id = ${id}
+      `;
+  } catch (error) {
+    return { message: 'Database Error: Failed to Update Invoice.' };
+  }
   revalidatePath('/dashboard/invoices');
-  redirect('/dashboard/invoices');
+  redirect('/dashboard/invoices'); //Observe cómo redirect se llama fuera del try/catch bloque. Esto se debe a que redirect funciona arrojando un error, que el bloque detectaría catch. Para evitar esto, puedes llamar redirect después try/catch . redirectsólo sería accesible si trytiene éxito.
 }
 
 export async function deleteInvoice(id: string) {
-    await sql`DELETE FROM invoices WHERE id = ${id}`;
-    revalidatePath('/dashboard/invoices');
+    // await sql`DELETE FROM invoices WHERE id = ${id}`;
+    throw new Error('Failed to Delete Invoice');
+    try {
+        await sql`DELETE FROM invoices WHERE id = ${id}`;
+        revalidatePath('/dashboard/invoices');
+        return { message: 'Deleted Invoice.' };
+      } catch (error) {
+        return { message: 'Database Error: Failed to Delete Invoice.' };
+      }
+    
   }
