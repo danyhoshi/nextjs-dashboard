@@ -14,7 +14,7 @@ export default async function Page({ params }: { params: { id: string } }) {
         fetchCustomers(),
       ]);
       if (!invoice) {
-        notFound(); //Esto es algo que debe tener en cuenta y notFoundtendrá prioridad sobre error.tsx, por lo que podrá consultarlo cuando desee solucionar errores más específicos.
+        notFound(); //Esto es algo que debe tener en cuenta y notFoundtendrá prioridad sobre error.tsx, por lo que podrá consultarlo cuando desee solucionar errores más específicos
       }
   return (
     <main>
